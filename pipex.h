@@ -19,6 +19,9 @@ typedef struct s_struct_pipe
 	int		fd1;
 	int		fd2;
 	pid_t	retour;
+	int p[2];
+
+
 	//char	*str_psp;
 }					t_struct_pipe;
 
@@ -37,7 +40,7 @@ void	ft_free_struct_str(char **p);
 char	*ft_update_string(char **str, char *new);
 void	ft_free_tab(char ***tab);
 void	ft_error(char * const str);
-t_struct_pipe	*ft_struct_init(t_struct_pipe **ptr);
+t_struct_pipe	*ft_struct_init(t_struct_pipe **ptr, char **argv);
 
 
 

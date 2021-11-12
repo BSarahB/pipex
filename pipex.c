@@ -1,13 +1,25 @@
 ﻿#include "pipex.h"
 
+void	ft_free_t_struct_pipe(t_struct_pipe **ptr)
+{
+	//ft_free_struct_str(&((*ptr)->str_psp));
+	//ft_free_struct_str(&((*ptr)->str_sign));
+	//ft_free_struct_str(&((*ptr)->str_diez));
+	//ft_free_struct_str(&((*ptr)->str_0_p));
+	//ft_free_struct_str(&((*ptr)->str_sp_g));
+	//ft_free_struct_str(&((*ptr)->str_0fil_g));
+	free(*ptr);
+	*ptr = NULL;
+}
 
-t_struct_pipe	*ft_struct_init(t_struct_pipe **ptr)//t_struct_pipe	*ft_struct_init(t_struct_pipe **ptr, char init_value)
+
+t_struct_pipe	*ft_struct_init(t_struct_pipe **ptr, char **argv)//t_struct_pipe	*ft_struct_init(t_struct_pipe **ptr, char init_value)
 {
 	*ptr = (t_struct_pipe *)malloc(sizeof(t_struct_pipe));
 	if (!(*ptr))
 		return (0);
-	(*ptr)->fd1 = 0;
-	(*ptr)->fd2 = 0;
+	(*ptr)->fd1 = open(argv[1], O_RDONLY);
+	(*ptr)->fd2 = open(argv[4], O_CREAT | O_RDWR | O_TRUNC, 0644);
 	(*ptr)->retour = 0;
 
 
@@ -16,11 +28,15 @@ t_struct_pipe	*ft_struct_init(t_struct_pipe **ptr)//t_struct_pipe	*ft_struct_ini
 	return (*ptr);
 }
 
-int ft_check_open_error(int fd1, int fd2)
+int ft_check_open_error(t_struct_pipe *ptr)
 {
-	if ((fd1 == -1) || (fd2 == -1))
+	if (((*ptr).fd1 == -1) || ((*ptr).fd2 == -1))
 		{
-			ft_putstr_fd("open() infile/ outfile failed \n", 1);
+		ft_error("pipex: No such file or directory\n");//avant : open()infile/outfile failed
+
+		//ft_putstr_fd("pipex: No such file or directory\n", 1);//avant : open()infile/outfile failed
+			//	ft_free_t_struct_pipe(&ptr);
+
 			return (1);
 		}
 	return (0);
@@ -30,6 +46,8 @@ int ft_check_close_error(int fd)
 	if (close(fd) == -1)
 	{
 		ft_error("Error: close() infile/outfile failed.\n");
+		//	ft_free_t_struct_pipe(&ptr);
+
 		return (1);
 	}
 	return (0);
@@ -49,7 +67,7 @@ char **ft_get_argv_cmd(int i,char **argv)
 }
 
 
-int	ft_child_process(int *p, int fd1, char **argv, char **path_tab, char **envp)
+int	ft_child_process(t_struct_pipe *ptr, char **argv, char **path_tab, char **envp)
 {
 	char *path_cmd1_joined;
 	int j;
@@ -60,24 +78,22 @@ int	ft_child_process(int *p, int fd1, char **argv, char **path_tab, char **envp)
 	j = -1;
 	argv_cmd1 = ft_get_argv_cmd(2, argv);
 	close (STDOUT_FILENO);
-	dup2(fd1, STDIN_FILENO);
-	(void)dup(p[1]);
-	close (p[1]);
-	close (p[0]);
+	dup2((*ptr).fd1, STDIN_FILENO);
+	(void)dup((*ptr).p[1]);
+	close ((*ptr).p[1]);
+	close ((*ptr).p[0]);
 	while (path_tab[++j])
 	{
 		path_cmd1_joined = ft_strjoin(path_tab[j], argv_cmd1[0]);
-		exec_return = execve(path_cmd1_joined, argv_cmd1, envp);
-		//perror("Error");
-		free(path_cmd1_joined);
-		// Respecter la priorité du path, seule la 1ere commande est exec
-		if(exec_return != -1)
+		exec_return = execve(path_cmd1_joined, argv_cmd1, envp);		//perror("Error");
+		free(path_cmd1_joined);		
+		if(exec_return != -1)// Respecter la priorité du path, seule la 1ere commande est exec
 			break;
 	}
 	ft_free_tab(&argv_cmd1);
 	return (exec_return);
 }
-int	ft_parent_process(int *p, int fd2, char **argv, char **path_tab, char **envp)
+int	ft_parent_process(t_struct_pipe *ptr, char **argv, char **path_tab, char **envp)
 {
 	char *path_cmd2_joined;
 	int i;
@@ -88,10 +104,10 @@ int	ft_parent_process(int *p, int fd2, char **argv, char **path_tab, char **envp
 	i = -1;
 	argv_cmd2 = ft_get_argv_cmd(3, argv);
 	close (STDIN_FILENO);
-	(void)dup(p[0]);
-	close (p[0]);
-	close (p[1]);
-	dup2(fd2, STDOUT_FILENO);
+	(void)dup((*ptr).p[0]);
+	close ((*ptr).p[0]);
+	close ((*ptr).p[1]);
+	dup2((*ptr).fd2, STDOUT_FILENO);
 	while (path_tab[++i])
 	{
 		path_cmd2_joined = ft_strjoin(path_tab[i], argv_cmd2[0]);//usr/bin/ls
@@ -104,39 +120,55 @@ int	ft_parent_process(int *p, int fd2, char **argv, char **path_tab, char **envp
 	return (exec_return);
 }
 
-int	ft_child(int *p, int fd1, char **argv, char **path_tab, char **envp)
+int	ft_create_child(t_struct_pipe *ptr, char **argv, char **path_tab, char **envp)
 {
-	if (ft_child_process(p, fd1, argv, path_tab, envp) == -1)
-		ft_error("Error: Command not found.\n");
-	if (ft_check_close_error(fd1))
+	if (ft_child_process(ptr, argv, path_tab, envp) == -1)
+		ft_error("Error: Command not found.\n");// ATTENDU sur terminal ->$pipex: command not found: not-executable//soit argv[3]
+	if (ft_check_close_error((*ptr).fd1))
 		return(1);
 	return(0);
 }
 
-int ft_parent(int *p, int fd2, char **argv, char **path_tab, char **envp)
+int ft_create_parent(t_struct_pipe *ptr, char **argv, char **path_tab, char **envp)
 {
-	if (ft_parent_process(p, fd2, argv, path_tab, envp) == -1)
+	if (ft_parent_process(ptr, argv, path_tab, envp) == -1)
 		ft_error("Error: Command not found.\n");
-	if (ft_check_close_error(fd2))
+	if (ft_check_close_error((*ptr).fd2))
 		return(1);
 	return(0);
 }
 
-int	ft_check_fork(int *p, int fd1, int fd2, char **argv, char **envp, pid_t retour)
+void	ft_create_pipe(t_struct_pipe *ptr)
+{
+	if(pipe((*ptr).p))
+	{
+		ft_free_t_struct_pipe(&ptr);
+		perror("pipe");
+		exit(0);
+	}
+}
+int	ft_check_fork(t_struct_pipe *ptr, char **argv, char **envp)
 {
 	char **path_tab;
 
 	path_tab = ft_get_path(envp);
-	if(retour == 0)
+	if((*ptr).retour == -1)
 	{
-		if(ft_child(p, fd1, argv, path_tab, envp))
+		ft_free_tab(&path_tab);
+		ft_free_t_struct_pipe(&ptr);
+		perror (" pb fork ");
+		exit(1);
+	}
+	if((*ptr).retour == 0)
+	{
+		if(ft_create_child(ptr, argv, path_tab, envp))
 			{
 				ft_free_tab(&path_tab);
 				return(1);
 			}
 	}
 	else {
-		if(ft_parent(p, fd2, argv, path_tab, envp))
+		if(ft_create_parent(ptr, argv, path_tab, envp))
 			{
 				ft_free_tab(&path_tab);
 				return(1);
@@ -148,35 +180,27 @@ int	ft_check_fork(int *p, int fd1, int fd2, char **argv, char **envp, pid_t reto
 
 int main(int argc, char *argv[], char *envp[])
 {
-	int p[2];
-	pid_t retour;
-	int fd1;
-	int fd2;
-//	t_struct_pipe	*ptr;
-//	ptr = ft_struct_init(&ptr);
+	t_struct_pipe	*ptr;
 
 	if (argc < 5)
 		{
 			ft_putstr_fd("expected: ./pipex infile cmd1 cmd2 outfile \n", 1);
 			return (1);
 		}
-	fd1 = open(argv[1], O_RDONLY);
-	fd2 = open(argv[4], O_CREAT | O_RDWR | O_TRUNC, 0644);
-	if (ft_check_open_error(fd1, fd2))
-		return(1);
-	if(pipe(p))
+	ptr = ft_struct_init(&ptr, argv);
+	if (ft_check_open_error(ptr))//param: (ptr)(on recupere le fd dans l check_open())
 	{
-		perror("pipe");
-		exit(0);
-	}
-	retour = fork();
-	if(retour == -1)
-	{
-		perror (" pb fork ");
-		exit(1);
-	}
-	if (ft_check_fork(p, fd1, fd2, argv, envp, retour))
+		ft_free_t_struct_pipe(&ptr);
 		return(1);
+	}
+	ft_create_pipe(ptr);
+	(*ptr).retour = fork();
+	if (ft_check_fork(ptr, argv, envp))
+	{
+		ft_free_t_struct_pipe(&ptr);
+		return(1);
+	}
+	ft_free_t_struct_pipe(&ptr);
 	return (0);
 }
 
