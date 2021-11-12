@@ -14,20 +14,15 @@
 
 
 
-typedef struct s_struct_pipe
+typedef struct s_struct
 {
 	int		fd1;
 	int		fd2;
 	pid_t	retour;
 	int p[2];
+	char **path_tab;
+}					t_struct;
 
-
-	//char	*str_psp;
-}					t_struct_pipe;
-
-//static	char	*ft_strndup(char *src, int n);
-//static	char	**ft_create_tab(char const *s, char c, size_t words_nbr);
-//static	size_t	ft_words_nbr(const char *s, char c);
 char			**ft_split(char const *s, char c);
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
 char	**ft_get_path(char **envp);
@@ -40,8 +35,6 @@ void	ft_free_struct_str(char **p);
 char	*ft_update_string(char **str, char *new);
 void	ft_free_tab(char ***tab);
 void	ft_error(char * const str);
-t_struct_pipe	*ft_struct_init(t_struct_pipe **ptr, char **argv);
-
-
+t_struct	*ft_struct_init(t_struct **ptr, char **argv);
 
 #endif
