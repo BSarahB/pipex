@@ -13,10 +13,19 @@
 
 int	ft_check_open_error(t_struct *ptr)
 {
-	if (((*ptr).fd1 == -1) || ((*ptr).fd2 == -1))
+	if ((*ptr).fd1 == -1)
 	{
-		ft_error("pipex: No such file or directory\n");
+		perror("pipex");
+		ft_check_close_error((*ptr).fd1);
+		//ft_error("pipex: No such file or directory\n");
 		return (1);
+	}
+	if ((*ptr).fd2 == -1)
+	{
+		perror("pipex");
+		ft_check_close_error((*ptr).fd2);
+		//ft_error("pipex: No such file or directory\n");
+		return (2);
 	}
 	return (0);
 }
@@ -25,7 +34,8 @@ int	ft_check_close_error(int fd)
 {
 	if (close(fd) == -1)
 	{
-		ft_error("Error: close() infile/outfile failed.\n");
+		//ft_error("Error: close() infile/outfile failed.\n");
+		//perror("pipex");
 		return (1);
 	}
 	return (0);

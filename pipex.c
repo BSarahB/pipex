@@ -58,7 +58,7 @@ int	ft_check_fork(t_struct *ptr, char **argv, char **envp)
 	}
 	else
 	{
-		if (ft_create_parent(ptr, argv, envp))
+		if (ft_create_parent(ptr, argv, envp))// == 1 echec
 		{
 			ft_free_t_struct(&ptr);
 			return (1);
@@ -70,6 +70,7 @@ int	ft_check_fork(t_struct *ptr, char **argv, char **envp)
 int	main(int argc, char *argv[], char *envp[])
 {
 	t_struct	*ptr;
+	int			ret;
 
 	if (argc < 5)
 	{
@@ -78,7 +79,8 @@ int	main(int argc, char *argv[], char *envp[])
 	}
 	ptr = ft_struct_init(&ptr, argv);
 	(*ptr).path_tab = ft_get_path(envp);
-	if (ft_check_open_error(ptr))
+	ret = ft_check_open_error(ptr);
+	if (ret == 2)
 	{
 		ft_free_t_struct(&ptr);
 		return (1);
