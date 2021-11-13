@@ -17,6 +17,10 @@ CC = clang
 INCLUDE_DIR	=	.
 SRC_DIR	=	src
 SRCS	=	pipex.c \
+			create_fork.c \
+			update_free_memory.c \
+			get_path.c \
+			display_error.c \
 			utils.c \
 
 OBJS = $(SRCS:.c=.o)
