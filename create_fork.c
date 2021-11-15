@@ -23,33 +23,6 @@ char	**ft_get_argv_cmd(int i, char **argv)
 	return (argv_cmd);
 }
 
-int	ft_child_process(t_struct *ptr, char **argv, char **envp)
-{
-	char	*path_cmd1_joined;
-	int		j;
-	char	**argv_cmd1;
-	int		exec_return;
-
-	exec_return = 0;
-	j = -1;
-	argv_cmd1 = ft_get_argv_cmd(2, argv);
-	close (STDOUT_FILENO);
-	dup2((*ptr).fd1, STDIN_FILENO);
-	(void)dup((*ptr).p[1]);
-	close ((*ptr).p[1]);
-	close ((*ptr).p[0]);
-	while ((*ptr).path_tab[++j])
-	{
-		path_cmd1_joined = ft_strjoin((*ptr).path_tab[j], argv_cmd1[0]);
-		exec_return = execve(path_cmd1_joined, argv_cmd1, envp);
-		free(path_cmd1_joined);
-		if (exec_return != -1)
-			break ;
-	}
-	ft_free_tab(&argv_cmd1);
-	return (exec_return);
-}
-
 int	ft_parent_process(t_struct *ptr, char **argv, char **envp)
 {
 	char	*path_cmd2_joined;
@@ -73,17 +46,57 @@ int	ft_parent_process(t_struct *ptr, char **argv, char **envp)
 		if (exec_return != -1)
 			break ;
 	}
+	if (exec_return == -1 && (errno == 2 || errno == 13))
+			(*ptr).errnum = 127;
 	ft_free_tab(&argv_cmd2);
+	return (exec_return);
+}
+
+int	ft_child_process(t_struct *ptr, char **argv, char **envp)
+{
+	char	*path_cmd1_joined;
+	int		j;
+	char	**argv_cmd1;
+	int		exec_return;
+
+	exec_return = 0;
+	j = -1;
+	argv_cmd1 = ft_get_argv_cmd(2, argv);
+	close (STDOUT_FILENO);
+	dup2((*ptr).fd1, STDIN_FILENO);
+	(void)dup((*ptr).p[1]);
+	close ((*ptr).p[1]);
+	close ((*ptr).p[0]);
+	while ((*ptr).path_tab[++j])
+	{
+		path_cmd1_joined = ft_strjoin((*ptr).path_tab[j], argv_cmd1[0]);
+		exec_return = execve(path_cmd1_joined, argv_cmd1, envp);
+		errno;
+		free(path_cmd1_joined);
+		if (exec_return != -1)
+			break ;
+	}
+	if (exec_return == -1 && (errno == 2 || errno == 13))
+			(*ptr).errnum = 127;
+	ft_free_tab(&argv_cmd1);
 	return (exec_return);
 }
 
 int	ft_create_child(t_struct *ptr, char **argv, char **envp)
 {
-	if (ft_child_process(ptr, argv, envp) == -1)
+	int ret;
+	ret = ft_child_process(ptr, argv, envp);
+	if (ret == -1)
 	{
 		ft_error("pipex: command not found: ");
 		ft_error(argv[2]);
 		ft_error("\n");
+	//	ft_check_close_error((*ptr).fd1);
+		if ((*ptr).errnum == 127)
+		{
+			(*ptr).errnum = 0;
+			return (127);
+		}
 		return (1);
 	}
 	if (ft_check_close_error((*ptr).fd1))
@@ -93,11 +106,19 @@ int	ft_create_child(t_struct *ptr, char **argv, char **envp)
 
 int	ft_create_parent(t_struct *ptr, char **argv, char **envp)
 {
-	if (ft_parent_process(ptr, argv, envp) == -1)
+	int ret;
+	ret = ft_parent_process(ptr, argv, envp);
+	if (ret == -1)
 	{
 		ft_error("pipex: command not found: ");
-		ft_error(argv[3]);
+		ft_error(argv[2]);
 		ft_error("\n");
+	//	ft_check_close_error((*ptr).fd2);
+		if ((*ptr).errnum == 127)
+		{
+			(*ptr).errnum = 0;
+			return (127);
+		}
 		return (1);
 	}
 	if (ft_check_close_error((*ptr).fd2))
