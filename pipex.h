@@ -26,6 +26,7 @@ typedef struct s_struct
 {
 	int		fd1;
 	int		fd2;
+	int		errnum;
 	pid_t	retour;
 	int		p[2];
 	char	**path_tab;
