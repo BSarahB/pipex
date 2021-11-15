@@ -11,25 +11,6 @@
 /* ************************************************************************** */
 #include "pipex.h"
 
-void	ft_free_t_struct(t_struct **ptr)
-{
-	ft_free_tab(&((*ptr)->path_tab));
-	free(*ptr);
-	*ptr = NULL;
-}
-
-t_struct	*ft_struct_init(t_struct **ptr, char **argv)
-{
-	*ptr = (t_struct *)malloc(sizeof(t_struct));
-	if (!(*ptr))
-		return (0);
-	(*ptr)->fd1 = open(argv[1], O_RDONLY);
-	(*ptr)->fd2 = open(argv[4], O_CREAT | O_RDWR | O_TRUNC, 0644);
-	(*ptr)->retour = 0;
-	(*ptr)->path_tab = 0;
-	return (*ptr);
-}
-
 void	ft_create_pipe(t_struct *ptr)
 {
 	if (pipe((*ptr).p))
@@ -40,8 +21,35 @@ void	ft_create_pipe(t_struct *ptr)
 	}
 }
 
+int	ft_get_parent_ret(t_struct *ptr, char **argv, char **envp)
+{
+	int	ret;
+
+	ret = ft_create_parent(ptr, argv, envp);
+	if (ret)
+	{
+		ft_free_t_struct(&ptr);
+		return (ret);
+	}
+	return (0);
+}
+
+int	ft_get_child_ret(t_struct *ptr, char **argv, char **envp)
+{
+	int	ret;
+
+	ret = ft_create_child(ptr, argv, envp);
+	if (ret)
+	{
+		ft_free_t_struct(&ptr);
+		return (ret);
+	}
+	return (0);
+}
+
 int	ft_check_fork(t_struct *ptr, char **argv, char **envp)
 {
+	int	ret;
 
 	if ((*ptr).retour == -1)
 	{
@@ -51,24 +59,14 @@ int	ft_check_fork(t_struct *ptr, char **argv, char **envp)
 	}
 	if ((*ptr).retour == 0)
 	{
-		int ret = ft_create_child(ptr, argv, envp);
-		if (ret)
-		{
-
-			ft_free_t_struct(&ptr);
-			return (ret);
-		}
+		ret = ft_get_child_ret(ptr, argv, envp);
+		return (ret);
 	}
 	else
 	{
-		int ret = ft_create_parent(ptr, argv, envp);
-		if (ret)
-		{
-			ft_free_t_struct(&ptr);
-			return (ret);
-		}
+		ret = ft_get_parent_ret(ptr, argv, envp);
+		return (ret);
 	}
-	return (0);
 }
 
 int	main(int argc, char *argv[], char *envp[])
@@ -76,9 +74,9 @@ int	main(int argc, char *argv[], char *envp[])
 	t_struct	*ptr;
 	int			ret;
 
-	if (argc < 5)
+	if (argc != 5)
 	{
-		ft_putstr_fd("expected: ./pipex infile cmd1 cmd2 outfile \n", 1);
+		ft_putstr_fd("usage: ./pipex infile cmd1 cmd2 outfile \n", 1);
 		return (1);
 	}
 	ptr = ft_struct_init(&ptr, argv);
@@ -91,9 +89,9 @@ int	main(int argc, char *argv[], char *envp[])
 	}
 	ft_create_pipe(ptr);
 	(*ptr).retour = fork();
-	int ret2 = ft_check_fork(ptr, argv, envp);
-	if (ret2)
-		return (ret2);
+	ret = ft_check_fork(ptr, argv, envp);
+	if (ret)
+		return (ret);
 	ft_free_t_struct(&ptr);
 	return (0);
 }
