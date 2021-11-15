@@ -42,6 +42,7 @@ void	ft_create_pipe(t_struct *ptr)
 
 int	ft_check_fork(t_struct *ptr, char **argv, char **envp)
 {
+
 	if ((*ptr).retour == -1)
 	{
 		ft_free_t_struct(&ptr);
@@ -50,18 +51,21 @@ int	ft_check_fork(t_struct *ptr, char **argv, char **envp)
 	}
 	if ((*ptr).retour == 0)
 	{
-		if (ft_create_child(ptr, argv, envp))
+		int ret = ft_create_child(ptr, argv, envp);
+		if (ret)
 		{
+
 			ft_free_t_struct(&ptr);
-			return (1);
+			return (ret);
 		}
 	}
 	else
 	{
-		if (ft_create_parent(ptr, argv, envp))// == 1 echec
+		int ret = ft_create_parent(ptr, argv, envp);
+		if (ret)
 		{
 			ft_free_t_struct(&ptr);
-			return (1);
+			return (ret);
 		}
 	}
 	return (0);
@@ -87,8 +91,9 @@ int	main(int argc, char *argv[], char *envp[])
 	}
 	ft_create_pipe(ptr);
 	(*ptr).retour = fork();
-	if (ft_check_fork(ptr, argv, envp))
-		return (1);
+	int ret2 = ft_check_fork(ptr, argv, envp);
+	if (ret2)
+		return (ret2);
 	ft_free_t_struct(&ptr);
 	return (0);
 }
