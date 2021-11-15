@@ -22,6 +22,7 @@ SRCS	=	pipex.c \
 			get_path.c \
 			display_error.c \
 			utils.c \
+			utils2.c
 
 OBJS = $(SRCS:.c=.o)
 
@@ -45,5 +46,4 @@ fclean:		clean
 
 re:		fclean all
 
-.PHONY:		clean fclean re all 
-
+.PHONY:		clean fclean re all
