@@ -42,6 +42,7 @@ char		*ft_init_string(size_t len);
 char		*ft_strcat(char *dest, char const *src);
 char		*ft_strjoin(char *s1, char const *s2);
 void		ft_putstr_fd(char *s, int fd);
+void		ft_free_t_struct(t_struct **ptr);
 void		ft_free_struct_str(char **p);
 char		*ft_update_string(char **str, char *new);
 void		ft_free_tab(char ***tab);
@@ -51,8 +52,12 @@ int			ft_check_open_error(t_struct *ptr);
 int			ft_check_close_error(int fd);
 int			ft_create_parent(t_struct *ptr, char **argv, char **envp);
 int			ft_create_child(t_struct *ptr, char **argv, char **envp);
+void		ft_create_pipe(t_struct *ptr);
+int			ft_get_child_ret(t_struct *ptr, char **argv, char **envp);
+int			ft_get_parent_ret(t_struct *ptr, char **argv, char **envp);
 int			ft_parent_process(t_struct *ptr, char **argv, char **envp);
 int			ft_child_process(t_struct *ptr, char **argv, char **envp);
+int			ft_execve_join(t_struct *ptr, char **envp, char **argv_cmd);
 char		**ft_get_argv_cmd(int i, char **argv);
 
 #endif
