@@ -87,9 +87,9 @@ int	ft_create_parent(t_struct *ptr, char **argv, char **envp)
 	ret = ft_parent_process(ptr, argv, envp);
 	if (ret == -1)
 	{
-		ft_error("pipex: command not found: ");
-		ft_error(argv[2]);
-		ft_error("\n");
+		ft_putstr_fd("pipex: command not found: ", 2);
+		ft_putstr_fd(argv[3], 2);
+		ft_putstr_fd("\n", 2);
 		ft_check_close_error((*ptr).fd2);
 		if ((*ptr).errnum == 127)
 		{
@@ -101,4 +101,14 @@ int	ft_create_parent(t_struct *ptr, char **argv, char **envp)
 	if (ft_check_close_error((*ptr).fd2))
 		return (1);
 	return (0);
+}
+
+void	ft_create_pipe(t_struct *ptr)
+{
+	if (pipe((*ptr).p))
+	{
+		ft_free_t_struct(&ptr);
+		perror("pipe");
+		exit (0);
+	}
 }
