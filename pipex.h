@@ -6,7 +6,7 @@
 /*   By: mbenmesb <mbenmesb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/13 14:08:29 by mbenmesb          #+#    #+#             */
-/*   Updated: 2021/11/13 14:08:39 by mbenmesb         ###   ########.fr       */
+/*   Updated: 2021/11/18 10:42:50 by mbenmesb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #ifndef PIPEX_H
@@ -21,6 +21,8 @@
 # include <sys/types.h>
 # include <sys/stat.h>
 # include <fcntl.h>
+# include <sys/types.h>
+# include <sys/wait.h>
 
 typedef struct s_struct
 {
@@ -28,6 +30,7 @@ typedef struct s_struct
 	int		fd2;
 	int		errnum;
 	pid_t	retour;
+	int		ret_fd1;
 	int		p[2];
 	char	**path_tab;
 }					t_struct;
@@ -59,5 +62,6 @@ int			ft_parent_process(t_struct *ptr, char **argv, char **envp);
 int			ft_child_process(t_struct *ptr, char **argv, char **envp);
 int			ft_execve_join(t_struct *ptr, char **envp, char **argv_cmd);
 char		**ft_get_argv_cmd(int i, char **argv);
+void		ft_error_msg(char **argv);
 
 #endif
