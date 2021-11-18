@@ -46,3 +46,22 @@ char	*ft_update_string(char **str, char *new)
 	ft_free_struct_str(&str_old);
 	return (*str);
 }
+
+void	ft_free_t_struct(t_struct **ptr)
+{
+	ft_free_tab(&((*ptr)->path_tab));
+	free(*ptr);
+	*ptr = NULL;
+}
+
+t_struct	*ft_struct_init(t_struct **ptr, char **argv)
+{
+	*ptr = (t_struct *)malloc(sizeof(t_struct));
+	if (!(*ptr))
+		return (0);
+	(*ptr)->fd1 = open(argv[1], O_RDONLY);
+	(*ptr)->fd2 = open(argv[4], O_CREAT | O_RDWR | O_TRUNC, 0644);
+	(*ptr)->retour = 0;
+	(*ptr)->path_tab = 0;
+	return (*ptr);
+}

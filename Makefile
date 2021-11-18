@@ -22,6 +22,7 @@ SRCS	=	pipex.c \
 			get_path.c \
 			display_error.c \
 			utils.c \
+			utils2.c
 
 OBJS = $(SRCS:.c=.o)
 
